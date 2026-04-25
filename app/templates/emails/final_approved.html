@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="font-family: -apple-system, Segoe UI, Arial, sans-serif; color: #222; margin: 0; padding: 24px; background: #f5f6f8;">
+  <div style="max-width: 640px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,.08);">
+    <h2 style="margin-top: 0; color: #1a7f37;">Post fully approved</h2>
+    <p>Hi {{ recipient_name }},</p>
+    <p>The LinkedIn post below has been approved through all levels and is ready to publish.</p>
+
+    <table style="width: 100%; border-collapse: collapse; background: #fafbfc; border: 1px solid #e1e4e8; border-radius: 6px; margin: 16px 0;">
+      <tr><td style="padding: 10px 14px; color: #6a737d; width: 110px;">Submitter</td>
+          <td style="padding: 10px 14px;"><strong>{{ submitter_name }}</strong> ({{ submitter_email }})</td></tr>
+    </table>
+
+    <h3 style="margin-bottom: 6px;">Content</h3>
+    <div style="padding: 12px 16px; background: #fafbfc; border: 1px solid #e1e4e8; border-radius: 4px; white-space: pre-wrap;">{{ post_content }}</div>
+
+    <h3 style="margin-top: 24px;">Approval trail</h3>
+    <ul style="padding-left: 20px;">
+      {% for step in approval_trail %}
+      <li style="margin-bottom: 6px;">
+        <strong>{{ step.level }}</strong> &mdash; {{ step.approver_email }}
+        {% if step.comment %}<br><span style="color: #6a737d;">Note: {{ step.comment }}</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</body>
+</html>

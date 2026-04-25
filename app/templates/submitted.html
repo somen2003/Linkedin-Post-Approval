@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Submitted{% endblock %}
+{% block content %}
+<div class="card">
+    {% if ok %}
+        <h2>Post submitted successfully</h2>
+        <p>The first approver has been notified by email. You'll hear back when a decision is made.</p>
+    {% else %}
+        <h2>Submission saved, but email failed</h2>
+        <p>Your post was recorded, but the approval email could not be sent. Please contact the admin to check SMTP settings.</p>
+    {% endif %}
+    <div class="form-actions">
+        <a href="/" class="btn btn-primary">Submit another post</a>
+    </div>
+</div>
+{% endblock %}

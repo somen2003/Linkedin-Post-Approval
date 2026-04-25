@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>{{ title }}</h2>
+    <p>{{ message }}</p>
+    {% if post %}
+    <div class="post-preview">
+        <h3>Post Content</h3>
+        <div class="content-preview">{{ post.content }}</div>
+        <p class="muted small">Current status: <strong>{{ post.status }}</strong>
+            {% if post.status == 'PENDING' %}(at {{ post.approval_chain[post.current_step] }}){% endif %}
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

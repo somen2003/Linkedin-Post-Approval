@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Confirm {{ action|lower }}{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>
+        {% if action == 'APPROVE' %}
+            Confirm Approval ({{ level }})
+        {% else %}
+            Confirm Rejection ({{ level }})
+        {% endif %}
+    </h2>
+
+    <p class="muted">You are acting as the <strong>{{ level }}</strong> approver for the post below.</p>
+
+    <div class="post-preview">
+        <div class="info-row">
+            <div><strong>Submitter:</strong> {{ post.submitter_name }} ({{ post.submitter_email }})</div>
+            <div><strong>Role:</strong>
+                <span class="badge badge-{{ post.submitter_role|lower }}">{{ post.submitter_role }}</span>
+            </div>
+        </div>
+        <h3>Content</h3>
+        <div class="content-preview">{{ post.content }}</div>
+    </div>
+
+    <form method="post" action="/action/{{ token }}">
+        <input type="hidden" name="action" value="{{ action }}">
+
+        <label for="comment">
+            {% if action == 'REJECT' %}Reason for rejection{% else %}Optional comment{% endif %}
+        </label>
+        <textarea id="comment" name="comment" rows="3" maxlength="1000"
+                  placeholder="{% if action == 'REJECT' %}Tell the submitter why...{% else %}Any notes for the record...{% endif %}"
+                  {% if action == 'REJECT' %}required{% endif %}></textarea>
+
+        <div class="form-actions">
+            {% if action == 'APPROVE' %}
+                <button type="submit" class="btn btn-approve">Confirm Approval</button>
+            {% else %}
+                <button type="submit" class="btn btn-reject">Confirm Rejection</button>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}

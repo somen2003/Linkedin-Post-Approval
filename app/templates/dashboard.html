@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Post Dashboard</h2>
+
+    {% if flash %}<div class="alert alert-info">{{ flash }}</div>{% endif %}
+
+    {% if not posts %}
+        <p class="muted">No posts yet. <a href="/">Submit the first one</a>.</p>
+    {% else %}
+    <table class="posts-table">
+        <thead>
+            <tr>
+                <th>Submitted</th>
+                <th>Content</th>
+                <th>Submitter</th>
+                <th>Chain</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+            <tr>
+                <td class="nowrap">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td class="content-cell">{{ post.content[:140] }}{% if post.content|length > 140 %}&hellip;{% endif %}</td>
+                <td>
+                    <div>{{ post.submitter_name }}</div>
+                    <div class="muted small">
+                        <span class="badge badge-{{ post.submitter_role|lower }}">{{ post.submitter_role }}</span>
+                    </div>
+                </td>
+                <td>
+                    {% for lvl in post.approval_chain %}
+                        {% if loop.index0 < post.current_step %}
+                            <span class="step step-done">{{ lvl }} &#10003;</span>
+                        {% elif loop.index0 == post.current_step and post.status == 'PENDING' %}
+                            <span class="step step-current">{{ lvl }}</span>
+                        {% else %}
+                            <span class="step step-pending">{{ lvl }}</span>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    <span class="status status-{{ post.status|lower }}">
+                        {% if post.status == 'PENDING' %}
+                            Pending {{ post.approval_chain[post.current_step] }}
+                        {% else %}
+                            {{ post.status }}
+                        {% endif %}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endblock %}

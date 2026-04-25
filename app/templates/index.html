@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Submit a LinkedIn post{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Submit a New LinkedIn Post</h2>
+
+    <form method="post" action="/api/posts">
+        <label for="submitter_name">Your name</label>
+        <select id="submitter_name" name="submitter_name" required>
+            <option value="" disabled selected>-- Select your name --</option>
+            {% for emp in employees %}
+                <option value="{{ emp.name }}">{{ emp.name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="content">Post Content</label>
+        <textarea id="content" name="content" rows="14" maxlength="10000" required
+                  placeholder="Write your LinkedIn post here..."></textarea>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Submit for Approval</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
