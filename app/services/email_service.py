@@ -91,6 +91,23 @@ def send_final_approved(
     _send(to_email, subject, html)
 
 
+def send_submitter_approved(
+    *,
+    to_email: str,
+    submitter_name: str,
+    post_content: str,
+    approval_trail: list[dict],
+) -> None:
+    subject = "[Approved] Your LinkedIn post is ready to publish"
+    html = _render(
+        "submitter_approved.html",
+        submitter_name=submitter_name,
+        post_content=post_content,
+        approval_trail=approval_trail,
+    )
+    _send(to_email, subject, html)
+
+
 def send_rejection_notice(
     *,
     to_email: str,

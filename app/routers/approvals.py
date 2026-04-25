@@ -92,6 +92,18 @@ def execute_action(
             ]
             db.commit()
 
+            # Notify the original submitter that they can publish on LinkedIn.
+            try:
+                email_service.send_submitter_approved(
+                    to_email=post.submitter_email,
+                    submitter_name=post.submitter_name,
+                    post_content=post.content,
+                    approval_trail=trail,
+                )
+            except Exception:
+                logger.exception("Failed sending submitter-approved email to %s", post.submitter_email)
+
+            # Fan out a copy to every approval-level stakeholder for the record.
             for approver in approvers:
                 try:
                     email_service.send_final_approved(
@@ -108,7 +120,7 @@ def execute_action(
             return templates.TemplateResponse(
                 "result.html",
                 {"request": request, "title": "Post fully approved",
-                 "message": "This was the final approval. The post has been sent to all stakeholders.",
+                 "message": "This was the final approval. The submitter has been notified that they can publish on LinkedIn, and a copy has been sent to all stakeholders.",
                  "post": post},
             )
 

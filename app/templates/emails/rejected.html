@@ -3,21 +3,23 @@
 <head><meta charset="UTF-8"></head>
 <body style="font-family: -apple-system, Segoe UI, Arial, sans-serif; color: #222; margin: 0; padding: 24px; background: #f5f6f8;">
   <div style="max-width: 640px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,.08);">
-    <h2 style="margin-top: 0; color: #cf222e;">Your post was not approved</h2>
+    <h2 style="margin-top: 0; color: #cf222e;">Your post was rejected &mdash; do not publish on LinkedIn</h2>
     <p>Hi {{ submitter_name }},</p>
-    <p>Your LinkedIn post was rejected at the <strong>{{ rejected_by_level }}</strong> review stage by {{ rejected_by_email }}.</p>
+
+    <p>Your LinkedIn post was <strong>rejected at the {{ rejected_by_level }} review stage</strong> by
+       <strong>{{ rejected_by_email }}</strong>. <strong>This content cannot be published on LinkedIn.</strong></p>
 
     {% if reason %}
-    <h3 style="margin-bottom: 6px;">Reason</h3>
+    <h3 style="margin-bottom: 6px;">Reason for rejection</h3>
     <div style="padding: 12px 16px; background: #fff5f5; border-left: 4px solid #cf222e; border-radius: 4px; white-space: pre-wrap;">{{ reason }}</div>
     {% endif %}
 
-    <h3 style="margin-bottom: 6px;">Content</h3>
+    <h3 style="margin-bottom: 6px;">Rejected Content</h3>
     <div style="padding: 12px 16px; background: #fafbfc; border: 1px solid #e1e4e8; border-radius: 4px; white-space: pre-wrap;">{{ post_content }}</div>
 
-    <p style="color: #6a737d; font-size: 13px; margin-top: 24px;">
-      You can revise and resubmit the post.
-    </p>
+    <div style="margin-top: 24px; padding: 12px 16px; background: #fff5f5; border-left: 4px solid #cf222e; border-radius: 4px;">
+      <strong>Next step:</strong> Please revise the content based on the feedback above and resubmit it for approval. Do not publish the rejected version on LinkedIn.
+    </div>
   </div>
 </body>
 </html>
