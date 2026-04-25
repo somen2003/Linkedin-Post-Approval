@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -67,7 +67,6 @@ def reject_page(raw_token: str, request: Request, db: Session = Depends(get_db))
 def execute_action(
     raw_token: str,
     request: Request,
-    background_tasks: BackgroundTasks,
     action: str = Form(...),
     comment: str = Form(default=""),
     db: Session = Depends(get_db),
@@ -80,14 +79,6 @@ def execute_action(
 
     token.used_at = datetime.utcnow()
     comment = (comment or "").strip() or None
-
-    # Capture primitives we need after the DB session closes (for background tasks).
-    post_content = post.content
-    submitter_name = post.submitter_name
-    submitter_email = post.submitter_email
-    submitter_role = post.submitter_role
-    acting_level = token.level
-    acting_approver_email = token.approver_email
 
     if action.upper() == "APPROVE":
         workflow.record_approval(db, post, token.level, token.approver_email, comment)
@@ -102,15 +93,17 @@ def execute_action(
             db.commit()
 
             for approver in approvers:
-                background_tasks.add_task(
-                    email_service.send_final_approved,
-                    to_email=approver.email,
-                    recipient_name=approver.name,
-                    post_content=post_content,
-                    submitter_name=submitter_name,
-                    submitter_email=submitter_email,
-                    approval_trail=trail,
-                )
+                try:
+                    email_service.send_final_approved(
+                        to_email=approver.email,
+                        recipient_name=approver.name,
+                        post_content=post.content,
+                        submitter_name=post.submitter_name,
+                        submitter_email=post.submitter_email,
+                        approval_trail=trail,
+                    )
+                except Exception:
+                    logger.exception("Failed sending final-approved email to %s", approver.email)
 
             return templates.TemplateResponse(
                 "result.html",
@@ -126,7 +119,7 @@ def execute_action(
             return templates.TemplateResponse(
                 "result.html",
                 {"request": request, "title": "Approval recorded",
-                 "message": f"Approved at {acting_level}, but no approver configured for {next_level}.",
+                 "message": f"Approved at {token.level}, but no approver configured for {next_level}.",
                  "post": post},
             )
 
@@ -134,23 +127,25 @@ def execute_action(
         reject_tok = workflow.create_action_token(db, post, next_level, next_approver.email)
         db.commit()
 
-        background_tasks.add_task(
-            email_service.send_approval_request,
-            to_email=next_approver.email,
-            approver_name=next_approver.name,
-            level=next_level,
-            post_content=post_content,
-            submitter_name=submitter_name,
-            submitter_email=submitter_email,
-            submitter_role=submitter_role,
-            approve_token=approve_tok,
-            reject_token=reject_tok,
-        )
+        try:
+            email_service.send_approval_request(
+                to_email=next_approver.email,
+                approver_name=next_approver.name,
+                level=next_level,
+                post_content=post.content,
+                submitter_name=post.submitter_name,
+                submitter_email=post.submitter_email,
+                submitter_role=post.submitter_role,
+                approve_token=approve_tok,
+                reject_token=reject_tok,
+            )
+        except Exception:
+            logger.exception("Failed sending approval request to %s", next_approver.email)
 
         return templates.TemplateResponse(
             "result.html",
             {"request": request, "title": "Approval recorded",
-             "message": f"Approved at {acting_level}. Forwarded to {next_level} for review.",
+             "message": f"Approved at {token.level}. Forwarded to {next_level} for review.",
              "post": post},
         )
 
@@ -158,20 +153,22 @@ def execute_action(
         workflow.record_rejection(db, post, token.level, token.approver_email, comment)
         db.commit()
 
-        background_tasks.add_task(
-            email_service.send_rejection_notice,
-            to_email=submitter_email,
-            submitter_name=submitter_name,
-            post_content=post_content,
-            rejected_by_level=acting_level,
-            rejected_by_email=acting_approver_email,
-            reason=comment,
-        )
+        try:
+            email_service.send_rejection_notice(
+                to_email=post.submitter_email,
+                submitter_name=post.submitter_name,
+                post_content=post.content,
+                rejected_by_level=token.level,
+                rejected_by_email=token.approver_email,
+                reason=comment,
+            )
+        except Exception:
+            logger.exception("Failed sending rejection notice to %s", post.submitter_email)
 
         return templates.TemplateResponse(
             "result.html",
             {"request": request, "title": "Rejection recorded",
-             "message": f"Post rejected at {acting_level}. The submitter has been notified.",
+             "message": f"Post rejected at {token.level}. The submitter has been notified.",
              "post": post},
         )
 

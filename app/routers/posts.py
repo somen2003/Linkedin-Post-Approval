@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -21,7 +21,6 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 @router.post("/api/posts", response_class=HTMLResponse)
 def submit_post(
     request: Request,
-    background_tasks: BackgroundTasks,
     submitter_name: str = Form(...),
     content: str = Form(...),
     db: Session = Depends(get_db),
@@ -62,21 +61,24 @@ def submit_post(
     reject_token = workflow.create_action_token(db, post, first_level, approver.email)
     db.commit()
 
-    # Kick email off in the background so the HTTP response returns immediately.
-    background_tasks.add_task(
-        email_service.send_approval_request,
-        to_email=approver.email,
-        approver_name=approver.name,
-        level=first_level,
-        post_content=content,
-        submitter_name=employee.name,
-        submitter_email=employee.email,
-        submitter_role=employee.role,
-        approve_token=approve_token,
-        reject_token=reject_token,
-    )
+    email_ok = True
+    try:
+        email_service.send_approval_request(
+            to_email=approver.email,
+            approver_name=approver.name,
+            level=first_level,
+            post_content=content,
+            submitter_name=employee.name,
+            submitter_email=employee.email,
+            submitter_role=employee.role,
+            approve_token=approve_token,
+            reject_token=reject_token,
+        )
+    except Exception:
+        logger.exception("Failed to send approval email for post %s", post.id)
+        email_ok = False
 
     return templates.TemplateResponse(
         "submitted.html",
-        {"request": request, "ok": True},
+        {"request": request, "ok": email_ok},
     )
