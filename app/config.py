@@ -41,7 +41,7 @@ class Employee:
 # Edit this list to add, remove, or change people. That's the only place to edit.
 EMPLOYEES: list[Employee] = [
     Employee(name="Somen Mishra",        email="somenmishra333@gmail.com",     role="L1"),
-    Employee(name="Sthitapragnya Sahoo", email="sthitapragnya7890@gmail.com",   role="L2"),
+    Employee(name="Sthitapragnya Sahoo", email="sahoosthitapragnya7890@gmail.com",   role="L2"),
     Employee(name="Surya Pratap",        email="agenticsurya@gmail.com",       role="L3"),
     Employee(name="Suvam Sen",           email="suvamsen172420@gmail.com",     role="OTHER"),
     Employee(name="Tapan Das",           email="tapankumarpanda164@gmail.com", role="OTHER"),
